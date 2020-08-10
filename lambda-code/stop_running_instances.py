@@ -13,9 +13,9 @@ def stop_instances(event, context):
                 ]
             },
             {
-                'Name': 'tag:${tag_key}',
+                'Name': 'tag:AutoStartStop',
                 'Values': [
-                    '${tag_value}'
+                    'True'
                 ]
             }
         ]
@@ -36,7 +36,7 @@ def stop_instances(event, context):
 
 def autoscaling():
     auto_scaling = boto3.client('autoscaling')
-    asgroups = [i for i in auto_scaling.describe_auto_scaling_groups()['AutoScalingGroups'] if [h for h in i['Tags'] if h['Key'] == '${tag_key}' and h['Value'] == '${tag_value}']]
+    asgroups = [i for i in auto_scaling.describe_auto_scaling_groups()['AutoScalingGroups'] if [h for h in i['Tags'] if h['Key'] == 'AutoStartStop' and h['Value'] == 'True']]
     if len(asgroups) > 0:
         for asg in asgroups:
             # To ensure that all AutoScalingGroups have the right tags, we will
