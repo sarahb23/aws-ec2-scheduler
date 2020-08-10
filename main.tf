@@ -1,3 +1,7 @@
 provider "aws" {
-    region = var.region
+  region = var.region
+}
+
+terraform {
+  required_version = ">= 0.12"
 }
