@@ -11,7 +11,7 @@ A production use case would be an internal application that is distributed among
 - Two CloudWatch Events that trigger the Lambda functions
 
 **This Project assumes that:**
-- You have an existing AWS with existing EC2 instances or AutoScaling groups (ASGs)
+- You have an existing AWS account with existing EC2 instances or AutoScaling groups (ASGs)
 - You have an IAM role with appropriate permissions to create the resources in this project
 - You have Terraform and the aws-cli installed on your system
 
@@ -20,19 +20,34 @@ A production use case would be an internal application that is distributed among
 git clone https://github.com/zach-23/aws-ec2-scheduler.git
 cd aws-ec2-scheduler/
 ```
-----------------------------------------------------------------
 
-## Environment setup
-Before running this example, you will need to configure your AWS credentials. Follow the Terraform documentation to set up your AWS credentials: https://www.terraform.io/docs/providers/aws/
-
+#### Or use directly as a Terraform module in an existing configuration
+```hcl
+module "scheduler" {
+  source       = "git::https://github.com/zach-23/aws-ec2-scheduler.git?ref=v1.0.1"
+  region       = var.region
+  # An instance tag that the scheduler should look for
+  tag          = {"Key" = "Value"}
+  # Change these variables according to an AWS supported `cron` statement.
+     https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
+  start_cron   = "cron(0 11 ? * MON-FRI *)"
+  stop_cron    = "cron(0 23 ? * MON-FRI *)"
+}
+```
 ----------------------------------------------------------------
 
 ## Instance tags
-- The Lambda functions will only apply to instances os ASGs with a specific tag
+- The Lambda functions will only apply to instances and/or ASGs with a specific tag
 
 - Attach a [tag](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html) to each instance or ASG
+- Example:
   ```
   AutoStartStop: True
+  ```
+- Define this tag when using as a standalone Terraform project or as a module within an existing Terraform conifguration
+- Example:
+  ```hcl
+  instance_tag = {"AutoStartStop" =  "True"}
   ```
 
 - For ASGs, the Lambda function pulls the properties `MinSize`, `MaxSize`, and `DesiredCapacity` from the ASG, saves them as tags, and sets all values to `0`. When the ASG is started again, those tags are applied and the ASG restores to its previous state.
@@ -49,7 +64,7 @@ terraform init
 
 Export a plan:
 ```
-terraform plan -out plan -var region="us-east-1"
+terraform plan -out plan
 ```
 
 Apply the plan:
@@ -59,21 +74,7 @@ terraform apply plan
 
 Cleanup resources:
 ```
-terraform destroy -var region="us-east-1"
+terraform destroy
 ```
 
 ----------------------------------------------------------------
-
-## Change the timing of your CloudWatch Events
-In the [cloudwatch.tf](./cloudwatch.tf) file, take a look at the two resources blocks titled `aws_cloudwatch_event_rule`
-
-```
-rresource "aws_cloudwatch_event_rule" "StartInstances" {
-    name                = "lambda-start-instances"
-    description         = "Turns on AWS instances at 6am Eastern Time"
-    schedule_expression = "cron(0 11 ? * MON-FRI *)"
-}
-```
-
-Change the `schedule_expression` argument according to an AWS supported `cron` statement.
-https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
