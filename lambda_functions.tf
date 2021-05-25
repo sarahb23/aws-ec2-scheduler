@@ -20,7 +20,7 @@ data "archive_file" "start" {
 
   source {
     content  = data.template_file.start.rendered
-    filename = "${path.module}/lambda-code/start_stopped_instances.py"
+    filename = "start_stopped_instances.py"
   }
 }
 
@@ -30,7 +30,7 @@ data "archive_file" "stop" {
 
   source {
     content  = data.template_file.stop.rendered
-    filename = "${path.module}/lambda-code/stop_running_instances.py}"
+    filename = "stop_running_instances.py"
   }
 }
 
@@ -40,6 +40,7 @@ resource "aws_lambda_function" "start_stopped_instances" {
   role          = aws_iam_role.start_stop_lambda_role.arn
   handler       = "start_stopped_instances.start_instances"
   runtime       = "python3.7"
+  timeout       = 30
 }
 
 resource "aws_lambda_function" "stop_running_instances" {
@@ -48,6 +49,7 @@ resource "aws_lambda_function" "stop_running_instances" {
   role          = aws_iam_role.start_stop_lambda_role.arn
   handler       = "stop_running_instances.stop_instances"
   runtime       = "python3.7"
+  timeout       = 30
 }
 
 resource "aws_cloudwatch_log_group" "Start-Stopped-Instances" {

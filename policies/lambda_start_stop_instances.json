@@ -2,14 +2,21 @@
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "EC2",
+            "Sid": "EC2Read",
             "Action": [
-                "ec2:DescribeInstances",
+                "ec2:DescribeInstances"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        },
+        {
+            "Sid": "EC2Write",
+            "Action": [
                 "ec2:StopInstances",
                 "ec2:StartInstances"
             ],
             "Effect": "Allow",
-            "Resource": "arn:aws:ec2:*:*:instance/*",
+            "Resource": "*",
             "Condition": {
                 "StringEquals": {
                     "ec2:ResourceTag/${tag_key}": "${tag_value}"
@@ -17,10 +24,17 @@
             }
         },
         {
-            "Sid": "Autoscaling",
+            "Sid": "AutoscalingRead",
             "Action": [
-                "autoscaling:UpdateAutoScalingGroup",
                 "autoscaling:DescribeAutoScalingGroups"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        },
+        {
+            "Sid": "AutoscalingWrite",
+            "Action": [
+                "autoscaling:UpdateAutoScalingGroup"
             ],
             "Effect": "Allow",
             "Resource": "*",

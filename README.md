@@ -27,11 +27,15 @@ module "scheduler" {
   source       = "git::https://github.com/zach-23/aws-ec2-scheduler.git?ref=v1.0.1"
   region       = var.region
   # An instance tag that the scheduler should look for
-  tag          = {"Key" = "Value"}
+  instance_tag = {"Key" = "Value"}
   # Change these variables according to an AWS supported `cron` statement.
-     https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
+    # https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
   start_cron   = "cron(0 11 ? * MON-FRI *)"
   stop_cron    = "cron(0 23 ? * MON-FRI *)"
+
+  providers = {
+    aws.src = aws
+  }
 }
 ```
 ----------------------------------------------------------------
@@ -51,30 +55,5 @@ module "scheduler" {
   ```
 
 - For ASGs, the Lambda function pulls the properties `MinSize`, `MaxSize`, and `DesiredCapacity` from the ASG, saves them as tags, and sets all values to `0`. When the ASG is started again, those tags are applied and the ASG restores to its previous state.
-
-----------------------------------------------------------------
-
-## Terraform usage
-Choose an AWS region you'd like to use. `us-east-1` is shown as an example.
-
-Initialize your Terraform project:
-```
-terraform init
-```
-
-Export a plan:
-```
-terraform plan -out plan
-```
-
-Apply the plan:
-```
-terraform apply plan
-```
-
-Cleanup resources:
-```
-terraform destroy
-```
 
 ----------------------------------------------------------------
