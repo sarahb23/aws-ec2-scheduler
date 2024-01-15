@@ -17,15 +17,14 @@ A production use case would be an internal application that is distributed among
 
 #### Clone the repo to get started
 ```
-git clone https://github.com/zach-23/aws-ec2-scheduler.git
+git clone https://github.com/sarah-23/aws-ec2-scheduler.git
 cd aws-ec2-scheduler/
 ```
 
 #### Or use directly as a Terraform module in an existing configuration
 ```hcl
 module "scheduler" {
-  source        = "git::https://github.com/sarah-23/aws-ec2-scheduler.git?ref=v1.0.1"
-  region        = var.region
+  source        = "git::https://github.com/sarah-23/aws-ec2-scheduler.git?ref=v2.0.0
   function_name = "ec2_scheduler"
   # An instance tag that the scheduler should look for
   tag_key       = "Scheduled"
