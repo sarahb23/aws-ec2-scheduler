@@ -1,59 +1,27 @@
-data "template_file" "start" {
-  template = file("${path.module}/lambda-code/start_stopped_instances.py")
-  vars = {
-    tag_key   = keys(var.instance_tag)[0]
-    tag_value = values(var.instance_tag)[0]
-  }
-}
-
-data "template_file" "stop" {
-  template = file("${path.module}/lambda-code/stop_running_instances.py")
-  vars = {
-    tag_key   = keys(var.instance_tag)[0]
-    tag_value = values(var.instance_tag)[0]
-  }
-}
-
-data "archive_file" "start" {
+data "archive_file" "lambda_code" {
   type        = "zip"
-  output_path = "${path.module}/lambda-code/start_stopped_instances.zip"
+  output_path = "${path.module}/lambda-code/scheduler_lambda.zip"
 
-  source {
-    content  = data.template_file.start.rendered
-    filename = "${path.module}/lambda-code/start_stopped_instances.py"
+  source_dir = "${path.module}/lambda-code/"
+}
+
+resource "aws_lambda_function" "scheduler_lambda" {
+  filename      = data.archive_file.lambda_code.output_path
+  function_name = var.function_name
+  role          = aws_iam_role.scheduler_lambda_role.arn
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.10"
+
+  source_code_hash = data.archive_file.lambda_code.output_base64sha256
+
+  environment {
+    variables = {
+      TAG_KEY   = var.tag_key
+      TAG_VALUE = var.tag_value
+    }
   }
 }
 
-data "archive_file" "stop" {
-  type        = "zip"
-  output_path = "${path.module}/lambda-code/stop_running_instances.zip"
-
-  source {
-    content  = data.template_file.stop.rendered
-    filename = "${path.module}/lambda-code/stop_running_instances.py}"
-  }
-}
-
-resource "aws_lambda_function" "start_stopped_instances" {
-  filename      = data.archive_file.start.output_path
-  function_name = "Start-Stopped-Instances"
-  role          = aws_iam_role.start_stop_lambda_role.arn
-  handler       = "start_stopped_instances.start_instances"
-  runtime       = "python3.7"
-}
-
-resource "aws_lambda_function" "stop_running_instances" {
-  filename      = data.archive_file.stop.output_path
-  function_name = "Stop-Running-Instances"
-  role          = aws_iam_role.start_stop_lambda_role.arn
-  handler       = "stop_running_instances.stop_instances"
-  runtime       = "python3.7"
-}
-
-resource "aws_cloudwatch_log_group" "Start-Stopped-Instances" {
-  name = "/aws/lambda/${aws_lambda_function.start_stopped_instances.function_name}"
-}
-
-resource "aws_cloudwatch_log_group" "Stop-Running-Instances" {
-  name = "/aws/lambda/${aws_lambda_function.stop_running_instances.function_name}"
+resource "aws_cloudwatch_log_group" "scheduler_lambda" {
+  name = "/aws/lambda/${aws_lambda_function.scheduler_lambda.function_name}"
 }
